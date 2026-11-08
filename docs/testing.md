@@ -16,6 +16,8 @@ Coverage:
 | Daily focus aggregation, midnight splitting, focus rate, task totals, month buckets, goal comparisons | `domain/stats/FocusStatsCalculatorTest` |
 | Daily streaks, missing-today grace, partial values, weekly-count habits, weekday schedules, weekly completion counts | `domain/habits/HabitCalculatorTest` |
 | Weekly goal, best/quietest day, insight generation | `domain/review/WeeklyReviewCalculatorTest` |
+| Room CRUD, task archiving, cascade deletes, segment overlap, habit completion upsert, weekly reflection upsert | `data/db/FocusFlowDatabaseTest` |
+| Shared Compose components render and handle clicks (Robolectric) | `ui/components/CommonComponentsTest` |
 | App launch on Robolectric | `AppSmokeTest` |
 
 Debug builds also exercise Room schema export (`app/schemas/`) via KSP.
