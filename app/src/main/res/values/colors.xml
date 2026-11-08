@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="focusflow_background">#FBF4FD</color>
+    <color name="focusflow_indigo">#2E2459</color>
+    <color name="focusflow_lavender">#D8CCFA</color>
+    <color name="ic_launcher_background">#2E2459</color>
+</resources>
