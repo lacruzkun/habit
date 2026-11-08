@@ -96,7 +96,7 @@ class HabitsViewModel(private val container: AppContainer) : ViewModel() {
                 stats = stats,
                 todayCompleted = today.toEpochDay() in completedDates,
                 weeklyProgress = weekCount,
-                weeklyTarget = habit.weeklyTargetCount.coerceAtLeast(1),
+                weeklyTarget = HabitCalculator.weeklyTarget(fact),
             )
         }.sortedWith(
             compareByDescending<HabitCardUi> { it.stats.todayScheduled && !it.todayCompleted }

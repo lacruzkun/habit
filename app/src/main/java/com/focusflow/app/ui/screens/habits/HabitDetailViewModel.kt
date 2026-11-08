@@ -77,7 +77,7 @@ class HabitDetailViewModel(
                 todayValue = todayEntry?.value ?: 0.0,
                 todayCompleted = today.toEpochDay() in completedDays,
                 weeklyCount = weeklyCount,
-                weeklyTarget = habit.weeklyTargetCount.coerceAtLeast(1),
+                weeklyTarget = HabitCalculator.weeklyTarget(habit.toFact()),
                 recentCompletions = completions.sortedByDescending { it.epochDay }.take(20),
                 weekStart = prefs.startOfWeek,
             )

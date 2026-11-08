@@ -220,6 +220,14 @@ object HabitCalculator {
         return count
     }
 
+    fun weeklyTarget(habit: HabitFact): Int = when (habit.frequency) {
+        HabitFrequency.DAILY -> 7
+        HabitFrequency.WEEKLY_DAYS -> (0..6).count { offset ->
+            maskHasDay(habit.daysMask, DayOfWeek.of(offset + 1))
+        }.coerceAtLeast(1)
+        HabitFrequency.WEEKLY_COUNT -> habit.weeklyTargetCount.coerceAtLeast(1)
+    }
+
     fun weeklyCompletionCount(
         completions: List<HabitCompletionFact>,
         weekStartDate: LocalDate,

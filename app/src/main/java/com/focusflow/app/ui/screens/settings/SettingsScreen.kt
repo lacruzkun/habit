@@ -1,6 +1,10 @@
 package com.focusflow.app.ui.screens.settings
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import androidx.core.content.ContextCompat
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -87,6 +91,9 @@ fun SettingsScreen(
     val prefs = state.prefs
     var showClear by remember { mutableStateOf(false) }
     var name by remember(prefs.userName) { mutableStateOf(prefs.userName) }
+    val notificationPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted -> onNotificationsChange(granted) }
 
     val exportJsonLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json"),
@@ -301,7 +308,19 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = prefs.notificationsEnabled,
-                            onCheckedChange = onNotificationsChange,
+                            onCheckedChange = { enabled ->
+                                val needsPermission = enabled &&
+                                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                                    ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.POST_NOTIFICATIONS,
+                                    ) != PackageManager.PERMISSION_GRANTED
+                                if (needsPermission) {
+                                    notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                } else {
+                                    onNotificationsChange(enabled)
+                                }
+                            },
                         )
                     }
                 }

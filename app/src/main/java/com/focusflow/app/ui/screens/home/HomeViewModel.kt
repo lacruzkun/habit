@@ -127,13 +127,18 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
         completions: List<HabitCompletionEntity>,
     ): HomeUiState {
         val categoryMap = categories.associateBy { it.id }
-        val focusSegments = segments.filter { it.sessionType == SessionType.FOCUS }
+        val zone = container.timeSource.zoneId()
+        val dayStart = date.startOfDayMillis(zone)
+        val dayEnd = date.endOfDayExclusiveMillis(zone)
+        val focusSegments = segments
+            .filter { it.sessionType == SessionType.FOCUS }
+            .map { it to (minOf(it.segmentEnd, dayEnd) - maxOf(it.segmentStart, dayStart)).coerceAtLeast(0) }
         val secondsByTask = focusSegments
-            .filter { it.taskId != null }
-            .groupBy { it.taskId!! }
-            .mapValues { (_, rows) -> rows.sumOf { (it.segmentEnd - it.segmentStart).coerceAtLeast(0) } / 1000L }
-        val totalSeconds = focusSegments.sumOf { (it.segmentEnd - it.segmentStart).coerceAtLeast(0) } / 1000L
-        val sessionsStarted = focusSegments.map { it.sessionId }.distinct().size
+            .filter { it.first.taskId != null }
+            .groupBy { it.first.taskId!! }
+            .mapValues { (_, rows) -> rows.sumOf { it.second } / 1000L }
+        val totalSeconds = focusSegments.sumOf { it.second } / 1000L
+        val sessionsStarted = focusSegments.map { it.first.sessionId }.distinct().size
         val taskItems = tasks
             .filter { it.active && it.archivedAt == null && it.matchesSchedule(date) }
             .map { task ->

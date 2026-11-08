@@ -143,6 +143,26 @@ class HabitCalculatorTest {
     }
 
     @Test
+    fun `weekly target follows habit frequency`() {
+        assertEquals(7, HabitCalculator.weeklyTarget(habit()))
+        assertEquals(
+            2,
+            HabitCalculator.weeklyTarget(
+                habit(
+                    frequency = HabitFrequency.WEEKLY_DAYS,
+                    daysMask = (1 shl 0) or (1 shl 2),
+                ),
+            ),
+        )
+        assertEquals(
+            3,
+            HabitCalculator.weeklyTarget(
+                habit(frequency = HabitFrequency.WEEKLY_COUNT, weeklyTarget = 3),
+            ),
+        )
+    }
+
+    @Test
     fun `no scheduled days yields null consistency`() {
         val stats = HabitCalculator.stats(
             habit = habit(frequency = HabitFrequency.WEEKLY_DAYS, daysMask = 1 shl 6),

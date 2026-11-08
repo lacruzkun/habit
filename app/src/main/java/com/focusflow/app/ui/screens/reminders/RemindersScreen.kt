@@ -1,6 +1,12 @@
 package com.focusflow.app.ui.screens.reminders
 
+import android.Manifest
 import android.app.TimePickerDialog
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +85,9 @@ fun RemindersScreen(
     var editing by remember { mutableStateOf<ReminderEntity?>(null) }
     var creating by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<ReminderEntity?>(null) }
+    val notificationPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted -> onEnableNotifications(granted) }
 
     LazyColumn(
         modifier = Modifier
@@ -131,7 +140,19 @@ fun RemindersScreen(
                     }
                     Switch(
                         checked = state.enabled,
-                        onCheckedChange = onEnableNotifications,
+                        onCheckedChange = { enabled ->
+                            val needsPermission = enabled &&
+                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.POST_NOTIFICATIONS,
+                                ) != PackageManager.PERMISSION_GRANTED
+                            if (needsPermission) {
+                                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                onEnableNotifications(enabled)
+                            }
+                        },
                     )
                 }
                 if (!state.enabled) {
