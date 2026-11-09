@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,8 @@ import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.FileUpload
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,8 +52,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -61,6 +64,8 @@ import com.focusflow.app.domain.model.WeekStart
 import com.focusflow.app.domain.time.formatDurationFromMinutes
 import com.focusflow.app.ui.components.ConfirmDialog
 import com.focusflow.app.ui.components.IconCatalog
+import com.focusflow.app.ui.components.IconBubble
+import com.focusflow.app.ui.components.GradientCard
 import com.focusflow.app.ui.components.PrimaryButton
 import com.focusflow.app.ui.components.ScreenHeader
 import com.focusflow.app.ui.components.SectionHeader
@@ -73,7 +78,8 @@ fun SettingsScreen(
     state: SettingsUiState,
     busy: Boolean,
     messages: Flow<String>,
-    onBack: () -> Unit,
+    onBack: (() -> Unit)?,
+    onMoreTools: () -> Unit,
     onNameChange: (String) -> Unit,
     onAvatarChange: (AvatarStyle) -> Unit,
     onThemeChange: (ThemeMode) -> Unit,
@@ -118,8 +124,8 @@ fun SettingsScreen(
             .statusBarsPadding(),
     ) {
         ScreenHeader(
-            title = "Settings",
-            subtitle = "Version ${state.appVersion}",
+            title = "More",
+            subtitle = "Make space for what matters",
             onBack = onBack,
             actions = {
                 if (busy) {
@@ -136,6 +142,35 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             item {
+                GradientCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.surfaceVariant),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconBubble(
+                            icon = IconCatalog.icon(prefs.avatarStyle.name.lowercase()),
+                            tint = MaterialTheme.colorScheme.primary,
+                            background = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+                            size = 58.dp,
+                            iconSize = 28.dp,
+                        )
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                prefs.userName.ifBlank { "Friend" },
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                            Text(
+                                "Daily goal · ${formatDurationFromMinutes(prefs.dailyFocusTargetMinutes)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
+                            )
+                        }
+                    }
+                }
+            }
+            item {
                 SectionHeader(title = "Profile")
             }
             item {
@@ -149,10 +184,10 @@ fun SettingsScreen(
                         label = { Text("Your name") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(16.dp),
                     )
                     Spacer(Modifier.height(12.dp))
-                    Text("Avatar", style = MaterialTheme.typography.titleSmall)
+                    Text("Choose your avatar", style = MaterialTheme.typography.titleSmall)
                     Spacer(Modifier.height(8.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         items(IconCatalog.avatarChoices) { key ->
@@ -165,17 +200,17 @@ fun SettingsScreen(
                                 },
                                 shape = CircleShape,
                                 color = if (selected) colors.lavender else colors.background,
+                                border = androidx.compose.foundation.BorderStroke(
+                                    1.dp,
+                                    if (selected) MaterialTheme.colorScheme.primary else colors.grid,
+                                ),
                                 modifier = Modifier.size(46.dp),
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
                                         IconCatalog.icon(key),
                                         contentDescription = key,
-                                        tint = if (selected) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            colors.muted
-                                        },
+                                        tint = if (selected) MaterialTheme.colorScheme.primary else colors.muted,
                                         modifier = Modifier.size(21.dp),
                                     )
                                 }
@@ -327,7 +362,7 @@ fun SettingsScreen(
                 }
             }
             item {
-                SectionHeader(title = "Data")
+                SectionHeader(title = "Data & privacy")
             }
             item {
                 SoftCard(modifier = Modifier.fillMaxWidth()) {
@@ -399,8 +434,33 @@ fun SettingsScreen(
                 }
             }
             item {
+                SoftCard(modifier = Modifier.fillMaxWidth(), contentPadding = 6.dp) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable(onClick = onMoreTools)
+                            .padding(horizontal = 10.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconBubble(
+                            icon = Icons.Rounded.Settings,
+                            tint = MaterialTheme.colorScheme.primary,
+                            background = colors.lavender,
+                            size = 38.dp,
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text("More tools", style = MaterialTheme.typography.titleSmall)
+                            Text("Categories, reminders, archive and weekly review", style = MaterialTheme.typography.labelSmall, color = colors.muted)
+                        }
+                        Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = colors.muted)
+                    }
+                }
+            }
+            item {
                 Text(
-                    "FocusFlow 1.0 · built with Compose",
+                    "FocusFlow ${state.appVersion} · everything stays on this device",
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.muted,
                     modifier = Modifier.padding(bottom = 20.dp),

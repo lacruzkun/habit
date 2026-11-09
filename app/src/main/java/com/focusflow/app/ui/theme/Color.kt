@@ -4,11 +4,11 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 
 object Palette {
-    val Purple = Color(0xFF6C4CF1)
-    val PurpleDeep = Color(0xFF4A32C4)
+    val Purple = Color(0xFF6747E8)
+    val PurpleDeep = Color(0xFF4A2FC0)
     val Indigo = Color(0xFF2E2459)
-    val Lavender = Color(0xFFD8CCFA)
-    val LavenderSoft = Color(0xFFF1EBFF)
+    val Lavender = Color(0xFFD9CCFF)
+    val LavenderSoft = Color(0xFFF0E9FF)
     val Peach = Color(0xFFFFB877)
     val PeachSoft = Color(0xFFFFE9D8)
     val Mint = Color(0xFF3FCB92)
@@ -17,11 +17,11 @@ object Palette {
     val PinkSoft = Color(0xFFFFE2EB)
     val Sky = Color(0xFF67B7F7)
     val SkySoft = Color(0xFFE2F1FF)
-    val Cream = Color(0xFFFBF4FD)
+    val Cream = Color(0xFFFAF6FF)
     val White = Color(0xFFFFFFFF)
     val Danger = Color(0xFFE5484D)
-    val DarkBackground = Color(0xFF151022)
-    val DarkSurface = Color(0xFF211933)
+    val DarkBackground = Color(0xFF151023)
+    val DarkSurface = Color(0xFF211A35)
     val DarkSurfaceVariant = Color(0xFF2D2443)
 }
 
@@ -54,7 +54,7 @@ val LightFocusColors = FocusColors(
     grid = Color(0xFFE9E1F7),
     card = Color.White,
     background = Palette.Cream,
-    backgroundGradient = listOf(Color(0xFFEFE7FF), Color(0xFFF8F3FF), Color(0xFFF3ECFF)),
+    backgroundGradient = listOf(Color(0xFFECE4FF), Color(0xFFFBF8FF), Color(0xFFF3ECFF)),
     success = Color(0xFF1E9E6A),
     danger = Palette.Danger,
 )

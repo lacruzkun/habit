@@ -72,17 +72,18 @@ fun SoftCard(
     contentPadding: Dp = 18.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val shape = RoundedCornerShape(24.dp)
+    val shape = RoundedCornerShape(26.dp)
+    val colors = LocalFocusColors.current
     val base = modifier
         .shadow(
-            elevation = 6.dp,
+            elevation = 8.dp,
             shape = shape,
-            ambientColor = Color(0xFF6C4CF1).copy(alpha = 0.10f),
-            spotColor = Color(0xFF6C4CF1).copy(alpha = 0.14f),
+            ambientColor = Color(0xFF6747E8).copy(alpha = 0.08f),
+            spotColor = Color(0xFF6747E8).copy(alpha = 0.12f),
         )
         .clip(shape)
         .background(color)
-        .border(1.dp, Color.White.copy(alpha = 0.7f), shape)
+        .border(1.dp, colors.grid.copy(alpha = 0.42f), shape)
         .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
     Column(
         modifier = base.padding(contentPadding),
@@ -103,6 +104,7 @@ fun GradientCard(
     val shape = RoundedCornerShape(28.dp)
     Column(
         modifier = modifier
+            .shadow(6.dp, shape, ambientColor = Color(0xFF6747E8).copy(alpha = 0.08f))
             .clip(shape)
             .background(Brush.linearGradient(colors))
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)

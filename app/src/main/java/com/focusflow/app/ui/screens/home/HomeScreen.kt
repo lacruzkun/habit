@@ -292,6 +292,16 @@ fun HomeScreen(
                                     style = MaterialTheme.typography.labelSmall,
                                     color = colors.muted,
                                 )
+                                Spacer(Modifier.height(6.dp))
+                                LinearProgressIndicator(
+                                    progress = { task.progress },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(4.dp)
+                                        .clip(CircleShape),
+                                    color = Color(task.task.colorArgb),
+                                    trackColor = colors.grid,
+                                )
                             }
                             Surface(
                                 shape = CircleShape,

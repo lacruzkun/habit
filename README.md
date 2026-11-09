@@ -32,8 +32,9 @@ Onboarding · Home · Focus Timer · Tasks · Task editor · Task detail · Stat
 Habit editor · Habit detail · Weekly review · Reminders · Archive · Categories · Settings ·
 More.
 
-The bottom navigation exposes Home, Stats, Habits, and More; plan-related screens are
-reachable from More.
+The bottom navigation exposes Home, Stats, Habits, and Settings. The Settings tab opens the
+profile and preferences hub; planning utilities such as categories, reminders, archive, and
+weekly review are available from More tools.
 
 ## Build
 

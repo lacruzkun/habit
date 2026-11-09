@@ -18,8 +18,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BarChart
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.SelfImprovement
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -93,7 +93,7 @@ private val tabs = listOf(
     TabItem(Routes.HOME, "Home", Icons.Rounded.Home),
     TabItem(Routes.STATS, "Stats", Icons.Rounded.BarChart),
     TabItem(Routes.HABITS, "Habits", Icons.Rounded.SelfImprovement),
-    TabItem(Routes.MORE, "More", Icons.Rounded.Menu),
+    TabItem(Routes.SETTINGS, "Settings", Icons.Rounded.Settings),
 )
 
 @Composable
@@ -399,7 +399,8 @@ private fun FocusFlowNavHost(
                         state = state,
                         busy = busy,
                         messages = viewModel.messages,
-                        onBack = { navController.popBackStack() },
+                        onBack = null,
+                        onMoreTools = { navController.navigate(Routes.MORE) },
                         onNameChange = viewModel::setUserName,
                         onAvatarChange = viewModel::setAvatar,
                         onThemeChange = viewModel::setTheme,
@@ -489,8 +490,10 @@ private fun FocusBottomBar(
             shape = RoundedCornerShape(28.dp),
             color = colors.card,
             tonalElevation = 0.dp,
-            shadowElevation = 10.dp,
-            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 12.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(30.dp)),
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
@@ -503,7 +506,7 @@ private fun FocusBottomBar(
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(20.dp))
+                            .clip(RoundedCornerShape(22.dp))
                             .background(if (selected) colors.lavender else Color.Transparent)
                             .clickable { onNavigate(tab.route) }
                             .padding(vertical = 8.dp),

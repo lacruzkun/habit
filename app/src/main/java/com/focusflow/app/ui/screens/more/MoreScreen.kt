@@ -71,9 +71,9 @@ fun MoreScreen(
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("More", style = MaterialTheme.typography.headlineMedium)
+                    Text("More tools", style = MaterialTheme.typography.headlineMedium)
                     Text(
-                        "Plan, reflect, and tune your setup.",
+                        "Plan, reflect, and manage your workspace.",
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.muted,
                     )
