@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Archive
@@ -82,8 +83,7 @@ fun ArchiveScreen(
             item {
                 SectionHeader(title = "Tasks")
             }
-            items(state.tasks.size) { index ->
-                val task = state.tasks[index]
+            items(state.tasks, key = { it.id }) { task ->
                 SoftCard(modifier = Modifier.fillMaxWidth()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconBubble(
@@ -140,8 +140,7 @@ fun ArchiveScreen(
             item {
                 SectionHeader(title = "Habits")
             }
-            items(state.habits.size) { index ->
-                val habit = state.habits[index]
+            items(state.habits, key = { it.id }) { habit ->
                 SoftCard(modifier = Modifier.fillMaxWidth()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconBubble(

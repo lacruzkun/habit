@@ -1,5 +1,6 @@
 package com.focusflow.app.ui.screens.review
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.focusflow.app.AppContainer
@@ -13,20 +14,24 @@ import com.focusflow.app.domain.stats.FocusStatsCalculator
 import com.focusflow.app.domain.stats.FocusStatsRequest
 import com.focusflow.app.domain.stats.weekRange
 import com.focusflow.app.domain.time.startOfWeek
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
+@Immutable
 data class HabitReviewRow(
     val name: String,
     val stats: HabitPeriodStats,
 )
 
+@Immutable
 data class WeeklyReviewUiState(
     val loading: Boolean = true,
     val weekStart: LocalDate = LocalDate.now(),
@@ -149,7 +154,7 @@ class WeeklyReviewViewModel(private val container: AppContainer) : ViewModel() {
             habitRows = habitStats.map { HabitReviewRow(it.first.name, it.second) },
             reflection = reflection,
         )
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = WeeklyReviewUiState(),

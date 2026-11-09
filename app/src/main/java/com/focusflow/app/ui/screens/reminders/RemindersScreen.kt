@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -180,8 +181,7 @@ fun RemindersScreen(
                 )
             }
         }
-        items(state.customs.size) { index ->
-            val reminder = state.customs[index]
+        items(state.customs, key = { it.id }) { reminder ->
             SoftCard(modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconBubble(
@@ -240,8 +240,7 @@ fun RemindersScreen(
                 )
             }
         }
-        items(state.taskReminders.size) { index ->
-            val task = state.taskReminders[index]
+        items(state.taskReminders, key = { it.id }) { task ->
             ReminderTargetRow(
                 iconKey = task.iconKey,
                 color = Color(task.colorArgb),
@@ -280,8 +279,7 @@ fun RemindersScreen(
                 )
             }
         }
-        items(state.habitReminders.size) { index ->
-            val habit = state.habitReminders[index]
+        items(state.habitReminders, key = { it.id }) { habit ->
             ReminderTargetRow(
                 iconKey = habit.iconKey,
                 color = Color(habit.colorArgb),

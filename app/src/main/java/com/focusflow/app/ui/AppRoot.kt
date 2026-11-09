@@ -1,5 +1,8 @@
 package com.focusflow.app.ui
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BarChart
@@ -96,6 +100,8 @@ private val tabs = listOf(
     TabItem(Routes.SETTINGS, "Settings", Icons.Rounded.Settings),
 )
 
+private val fullScreenRoutes = setOf(Routes.TASK_EDITOR, Routes.HABIT_EDITOR, Routes.TIMER)
+
 @Composable
 fun AppRoot(
     container: AppContainer,
@@ -149,8 +155,28 @@ private fun FocusFlowNavHost(
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val showBottomBar = currentRoute in tabs.map { it.route }
+    val showBottomBar = currentRoute != null && currentRoute !in fullScreenRoutes
     val colors = LocalFocusColors.current
+    val homeViewModel: HomeViewModel = viewModel(factory = factory)
+    val statsViewModel: StatsViewModel = viewModel(factory = factory)
+    val habitsViewModel: HabitsViewModel = viewModel(factory = factory)
+    val settingsViewModel: SettingsViewModel = viewModel(factory = factory)
+    val homeListState = rememberLazyListState()
+    val statsListState = rememberLazyListState()
+    val habitsListState = rememberLazyListState()
+    val settingsListState = rememberLazyListState()
+
+    val navigateToTab: (String) -> Unit = { route ->
+        if (route != currentRoute) {
+            navController.navigate(route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = false
+                }
+                launchSingleTop = true
+                restoreState = false
+            }
+        }
+    }
 
     LaunchedEffect(openTimerSignal) {
         if (openTimerSignal > 0) {
@@ -164,15 +190,7 @@ private fun FocusFlowNavHost(
             if (showBottomBar) {
                 FocusBottomBar(
                     currentRoute = currentRoute,
-                    onNavigate = { route ->
-                        navController.navigate(route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
+                    onNavigate = navigateToTab,
                 )
             }
         },
@@ -184,19 +202,23 @@ private fun FocusFlowNavHost(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(bottom = if (showBottomBar) padding.calculateBottomPadding() else 0.dp),
+                enterTransition = { fadeIn(tween(180)) },
+                exitTransition = { fadeOut(tween(120)) },
+                popEnterTransition = { fadeIn(tween(180)) },
+                popExitTransition = { fadeOut(tween(120)) },
             ) {
                 composable(Routes.HOME) {
-                    val viewModel: HomeViewModel = viewModel(factory = factory)
-                    val state by viewModel.state.collectAsStateWithLifecycle()
+                    val state by homeViewModel.state.collectAsStateWithLifecycle()
                     HomeScreen(
                         state = state,
-                        onToggleHabit = viewModel::toggleHabit,
+                        listState = homeListState,
+                        onToggleHabit = homeViewModel::toggleHabit,
                         onOpenTask = { navController.navigate(Routes.taskDetail(it)) },
                         onStartTaskFocus = { navController.navigate(Routes.timer(it)) },
                         onStartFocus = { navController.navigate(Routes.timer()) },
                         onSeeTasks = { navController.navigate(Routes.TASKS) },
-                        onSeeStats = { navController.navigate(Routes.STATS) },
-                        onSeeHabits = { navController.navigate(Routes.HABITS) },
+                        onSeeStats = { navigateToTab(Routes.STATS) },
+                        onSeeHabits = { navigateToTab(Routes.HABITS) },
                     )
                 }
 
@@ -305,24 +327,24 @@ private fun FocusFlowNavHost(
                 }
 
                 composable(Routes.STATS) {
-                    val viewModel: StatsViewModel = viewModel(factory = factory)
-                    val state by viewModel.state.collectAsStateWithLifecycle()
+                    val state by statsViewModel.state.collectAsStateWithLifecycle()
                     StatsScreen(
                         state = state,
-                        onPeriodChange = viewModel::setPeriod,
+                        listState = statsListState,
+                        onPeriodChange = statsViewModel::setPeriod,
                         onSeeTasks = { navController.navigate(Routes.TASKS) },
                     )
                 }
 
                 composable(Routes.HABITS) {
-                    val viewModel: HabitsViewModel = viewModel(factory = factory)
-                    val state by viewModel.state.collectAsStateWithLifecycle()
+                    val state by habitsViewModel.state.collectAsStateWithLifecycle()
                     HabitsScreen(
                         state = state,
+                        listState = habitsListState,
                         onAdd = { navController.navigate(Routes.habitEditor()) },
                         onOpenHabit = { navController.navigate(Routes.habitDetail(it)) },
-                        onToggle = viewModel::toggleHabit,
-                        onSetProgress = viewModel::setProgress,
+                        onToggle = habitsViewModel::toggleHabit,
+                        onSetProgress = habitsViewModel::setProgress,
                     )
                 }
 
@@ -392,26 +414,26 @@ private fun FocusFlowNavHost(
                 }
 
                 composable(Routes.SETTINGS) {
-                    val viewModel: SettingsViewModel = viewModel(factory = factory)
-                    val state by viewModel.state.collectAsStateWithLifecycle()
-                    val busy by viewModel.busy.collectAsStateWithLifecycle()
+                    val state by settingsViewModel.state.collectAsStateWithLifecycle()
+                    val busy by settingsViewModel.busy.collectAsStateWithLifecycle()
                     SettingsScreen(
                         state = state,
+                        listState = settingsListState,
                         busy = busy,
-                        messages = viewModel.messages,
+                        messages = settingsViewModel.messages,
                         onBack = null,
                         onMoreTools = { navController.navigate(Routes.MORE) },
-                        onNameChange = viewModel::setUserName,
-                        onAvatarChange = viewModel::setAvatar,
-                        onThemeChange = viewModel::setTheme,
-                        onWeekStartChange = viewModel::setWeekStart,
-                        onDailyTargetChange = viewModel::setDailyTarget,
-                        onPomodoroChange = viewModel::setPomodoroDefaults,
-                        onNotificationsChange = viewModel::setNotificationsEnabled,
-                        onExportJson = viewModel::exportJson,
-                        onExportCsv = viewModel::exportCsv,
-                        onImportJson = viewModel::importJson,
-                        onClearData = viewModel::clearAllData,
+                        onNameChange = settingsViewModel::setUserName,
+                        onAvatarChange = settingsViewModel::setAvatar,
+                        onThemeChange = settingsViewModel::setTheme,
+                        onWeekStartChange = settingsViewModel::setWeekStart,
+                        onDailyTargetChange = settingsViewModel::setDailyTarget,
+                        onPomodoroChange = settingsViewModel::setPomodoroDefaults,
+                        onNotificationsChange = settingsViewModel::setNotificationsEnabled,
+                        onExportJson = settingsViewModel::exportJson,
+                        onExportCsv = settingsViewModel::exportCsv,
+                        onImportJson = settingsViewModel::importJson,
+                        onClearData = settingsViewModel::clearAllData,
                     )
                 }
 

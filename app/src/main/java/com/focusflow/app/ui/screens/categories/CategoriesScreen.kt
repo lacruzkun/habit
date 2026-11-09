@@ -121,8 +121,7 @@ fun CategoriesScreen(
                 )
             }
         }
-        items(state.categories.size) { index ->
-            val row = state.categories[index]
+        items(state.categories, key = { it.category.id }) { row ->
             val category = row.category
             SoftCard(modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

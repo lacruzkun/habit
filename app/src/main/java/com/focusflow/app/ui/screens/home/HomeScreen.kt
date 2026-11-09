@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -66,6 +68,7 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     state: HomeUiState,
+    listState: LazyListState,
     onToggleHabit: (Long) -> Unit,
     onOpenTask: (Long) -> Unit,
     onStartTaskFocus: (Long) -> Unit,
@@ -79,6 +82,7 @@ fun HomeScreen(
         (state.focusSeconds.toFloat() / state.targetSeconds.toFloat()).coerceIn(0f, 1f)
     }
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding(),
@@ -390,8 +394,7 @@ fun HomeScreen(
             item {
                 SectionHeader(title = "Recent sessions", onAction = onSeeStats, actionLabel = "Stats")
             }
-            items(state.recentSessions.size) { index ->
-                val session = state.recentSessions[index]
+            items(state.recentSessions, key = { it.id }) { session ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,

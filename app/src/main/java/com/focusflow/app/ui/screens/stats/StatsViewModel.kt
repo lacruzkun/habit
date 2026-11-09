@@ -1,5 +1,6 @@
 package com.focusflow.app.ui.screens.stats
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.focusflow.app.AppContainer
@@ -20,22 +21,26 @@ import com.focusflow.app.domain.stats.TaskFocus
 import com.focusflow.app.domain.stats.metricChange
 import com.focusflow.app.domain.stats.periodRange
 import com.focusflow.app.domain.stats.previousRange
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@Immutable
 data class DistractionUi(
     val entity: DistractionEntity,
     val durationMinutes: Long,
 )
 
+@Immutable
 data class StatsUiState(
     val loading: Boolean = true,
     val period: PeriodType = PeriodType.WEEK,
@@ -178,7 +183,7 @@ class StatsViewModel(private val container: AppContainer) : ViewModel() {
             tasks = tasks,
             categories = categories,
         )
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = StatsUiState(),

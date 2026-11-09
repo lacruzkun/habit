@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -76,6 +77,7 @@ import kotlinx.coroutines.flow.Flow
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,
+    listState: LazyListState,
     busy: Boolean,
     messages: Flow<String>,
     onBack: (() -> Unit)?,
@@ -137,6 +139,7 @@ fun SettingsScreen(
             },
         )
         LazyColumn(
+            state = listState,
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),

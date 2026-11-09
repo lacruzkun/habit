@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -49,6 +51,7 @@ import com.focusflow.app.ui.theme.LocalFocusColors
 @Composable
 fun HabitsScreen(
     state: HabitsUiState,
+    listState: LazyListState,
     onAdd: () -> Unit,
     onOpenHabit: (Long) -> Unit,
     onToggle: (Long) -> Unit,
@@ -56,6 +59,7 @@ fun HabitsScreen(
 ) {
     val colors = LocalFocusColors.current
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding(),
@@ -145,8 +149,7 @@ fun HabitsScreen(
                 subtitle = "${state.habits.size} active",
             )
         }
-        items(state.habits.size) { index ->
-            val card = state.habits[index]
+        items(state.habits, key = { it.habit.id }) { card ->
             val habit = card.habit
             SoftCard(
                 modifier = Modifier.fillMaxWidth(),

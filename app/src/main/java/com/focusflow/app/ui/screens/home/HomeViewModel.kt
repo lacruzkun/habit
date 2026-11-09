@@ -1,5 +1,6 @@
 package com.focusflow.app.ui.screens.home
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.focusflow.app.AppContainer
@@ -16,6 +17,7 @@ import com.focusflow.app.domain.model.AvatarStyle
 import com.focusflow.app.domain.model.SessionType
 import com.focusflow.app.domain.time.endOfDayExclusiveMillis
 import com.focusflow.app.domain.time.startOfDayMillis
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -31,6 +34,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@Immutable
 data class TaskProgressUi(
     val task: TaskEntity,
     val category: CategoryEntity?,
@@ -38,12 +42,14 @@ data class TaskProgressUi(
     val progress: Float,
 )
 
+@Immutable
 data class HabitTodayUi(
     val habit: HabitEntity,
     val completed: Boolean,
     val scheduled: Boolean,
 )
 
+@Immutable
 data class HomeUiState(
     val loading: Boolean = true,
     val userName: String = "Friend",
@@ -104,7 +110,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
                 completions = habitsPair.second,
             )
         }
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HomeUiState(),

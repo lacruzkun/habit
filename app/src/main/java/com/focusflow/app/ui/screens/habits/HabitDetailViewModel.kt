@@ -1,5 +1,6 @@
 package com.focusflow.app.ui.screens.habits
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,13 +15,16 @@ import com.focusflow.app.domain.stats.DateRange
 import com.focusflow.app.domain.stats.weekRange
 import com.focusflow.app.domain.time.epochDayToDate
 import com.focusflow.app.domain.time.startOfWeek
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
+@Immutable
 data class HabitDetailUiState(
     val loading: Boolean = true,
     val habit: HabitEntity? = null,
@@ -82,7 +86,7 @@ class HabitDetailViewModel(
                 weekStart = prefs.startOfWeek,
             )
         }
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = HabitDetailUiState(),

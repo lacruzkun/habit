@@ -1,5 +1,6 @@
 package com.focusflow.app.ui.screens.tasks
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.focusflow.app.AppContainer
@@ -7,21 +8,25 @@ import com.focusflow.app.data.db.CategoryEntity
 import com.focusflow.app.data.db.TaskEntity
 import com.focusflow.app.data.repository.matchesSchedule
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 enum class TaskFilter { ACTIVE, ALL, ARCHIVED }
 
+@Immutable
 data class TaskRowUi(
     val task: TaskEntity,
     val category: CategoryEntity?,
     val scheduledToday: Boolean,
 )
 
+@Immutable
 data class TasksUiState(
     val loading: Boolean = true,
     val filter: TaskFilter = TaskFilter.ACTIVE,
@@ -73,7 +78,7 @@ class TasksViewModel(private val container: AppContainer) : ViewModel() {
             totalActive = current.size,
             totalArchived = archived.size,
         )
-    }.stateIn(
+    }.flowOn(Dispatchers.Default).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = TasksUiState(),
