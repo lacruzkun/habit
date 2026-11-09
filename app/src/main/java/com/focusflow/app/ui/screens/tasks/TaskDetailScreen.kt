@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Archive
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Restore
@@ -40,6 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.focusflow.app.domain.stats.FocusSummary
 import com.focusflow.app.domain.time.formatDurationOrZero
+import com.focusflow.app.ui.components.ChartLabels
+import com.focusflow.app.ui.components.LineChart
+import com.focusflow.app.ui.components.PillTabs
 import com.focusflow.app.ui.components.ConfirmDialog
 import com.focusflow.app.ui.components.EmptyState
 import com.focusflow.app.ui.components.GradientCard
@@ -73,6 +77,7 @@ fun TaskDetailScreen(
     val task = state.task
     var showDelete by remember { mutableStateOf(false) }
     var showArchive by remember { mutableStateOf(false) }
+    var range by remember { mutableStateOf(0) }
 
     Column(
         modifier = Modifier
@@ -80,8 +85,7 @@ fun TaskDetailScreen(
             .statusBarsPadding(),
     ) {
         ScreenHeader(
-            title = task?.name ?: "Task",
-            subtitle = state.category?.name,
+            title = "Task Analytics",
             onBack = onBack,
             actions = {
                 if (task != null) {
@@ -124,12 +128,12 @@ fun TaskDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 item {
-                    GradientCard(modifier = Modifier.fillMaxWidth()) {
+                    SoftCard(modifier = Modifier.fillMaxWidth()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconBubble(
                                 icon = IconCatalog.icon(task.iconKey),
                                 tint = Color(task.colorArgb),
-                                background = Color.White.copy(alpha = 0.55f),
+                                background = Color(task.colorArgb).copy(alpha = 0.13f),
                                 size = 52.dp,
                                 iconSize = 24.dp,
                             )
@@ -195,12 +199,108 @@ fun TaskDetailScreen(
                 }
 
                 item {
-                    SectionHeader(title = "Focus time")
-                    Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        SummaryTile("Today", state.today, Modifier.weight(1f))
-                        SummaryTile("This week", state.week, Modifier.weight(1f))
-                        SummaryTile("This month", state.month, Modifier.weight(1f))
+                    PillTabs(
+                        options = listOf(0, 1),
+                        selected = range,
+                        label = { if (it == 0) "Week" else "Month" },
+                        onSelect = { range = it },
+                    )
+                }
+
+                item {
+                    val summary = if (range == 0) state.week else state.month
+                    val daily = summary?.daily.orEmpty()
+                    val values = daily.map { it.seconds }
+                    val peak = values.indices.maxByOrNull { values[it] } ?: -1
+                    val dayFmt = DateTimeFormatter.ofPattern("MMM d", Locale.getDefault())
+                    SoftCard(modifier = Modifier.fillMaxWidth()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    formatDurationOrZero(summary?.totalSeconds ?: 0),
+                                    style = MaterialTheme.typography.headlineMedium,
+                                )
+                                Text("Total Time", style = MaterialTheme.typography.labelSmall, color = colors.muted)
+                            }
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    "${summary?.completedSessions ?: 0}",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                )
+                                Text("Pomodoros", style = MaterialTheme.typography.labelSmall, color = colors.muted)
+                            }
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        LineChart(
+                            values = values,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp),
+                            highlightIndex = if (peak >= 0 && values[peak] > 0) peak else -1,
+                            tooltip = if (peak >= 0 && values[peak] > 0) formatDurationOrZero(values[peak]) else null,
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        if (range == 0 && daily.size in 1..7) {
+                            ChartLabels(
+                                labels = daily.map {
+                                    it.date.dayOfWeek.getDisplayName(
+                                        java.time.format.TextStyle.SHORT,
+                                        Locale.getDefault(),
+                                    )
+                                },
+                            )
+                        } else if (daily.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(
+                                    daily.first().date.format(dayFmt),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = colors.muted,
+                                )
+                                Text(
+                                    daily.last().date.format(dayFmt),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = colors.muted,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    val summary = if (range == 0) state.week else state.month
+                    val best = summary?.bestDay?.takeIf { it.seconds > 0 }
+                    SoftCard(modifier = Modifier.fillMaxWidth(), color = colors.lavender) {
+                        Row(verticalAlignment = Alignment.Top) {
+                            Icon(
+                                Icons.Rounded.Lightbulb,
+                                contentDescription = null,
+                                tint = Color(0xFFFFB020),
+                                modifier = Modifier.size(24.dp),
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column {
+                                Text("Insights", style = MaterialTheme.typography.titleSmall)
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text = if (best != null) {
+                                        "Your best day was " +
+                                            best.date.dayOfWeek.getDisplayName(
+                                                java.time.format.TextStyle.FULL,
+                                                Locale.getDefault(),
+                                            ) +
+                                            " with ${formatDurationOrZero(best.seconds)} of focus. " +
+                                            "You average ${formatDurationOrZero(summary?.averageDailySeconds ?: 0)} per day."
+                                    } else {
+                                        "No focus recorded for this task in this period yet."
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = colors.muted,
+                                )
+                            }
+                        }
                     }
                 }
 

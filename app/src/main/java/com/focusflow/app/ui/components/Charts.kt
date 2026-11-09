@@ -4,6 +4,12 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.Path
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -242,6 +248,100 @@ fun WeekBars(
                     text = labels.getOrElse(index) { "" },
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.muted,
+                )
+            }
+        }
+    }
+}
+
+/** Smooth area line chart with dots and an optional tooltip bubble on one point. */
+@Composable
+fun LineChart(
+    values: List<Long>,
+    modifier: Modifier = Modifier,
+    lineColor: Color = MaterialTheme.colorScheme.primary,
+    highlightIndex: Int = -1,
+    tooltip: String? = null,
+) {
+    val colors = LocalFocusColors.current
+    val maxValue = max(1L, values.maxOrNull() ?: 1L).toFloat()
+    BoxWithConstraints(modifier = modifier) {
+        val chartWidth = maxWidth
+        val chartHeight = maxHeight
+        val pad = 14.dp
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            if (values.isEmpty()) return@Canvas
+            val padPx = pad.toPx()
+            val usable = size.height - padPx * 2
+            val points = values.indices.map { i ->
+                val x = if (values.size <= 1) size.width / 2f else size.width * i / (values.size - 1)
+                val y = padPx + usable * (1f - values[i] / maxValue)
+                Offset(x, y)
+            }
+            repeat(3) { k ->
+                val y = padPx + usable * k / 2f
+                drawLine(
+                    color = colors.grid,
+                    start = Offset(0f, y),
+                    end = Offset(size.width, y),
+                    strokeWidth = 1.dp.toPx(),
+                )
+            }
+            val line = Path().apply {
+                moveTo(points.first().x, points.first().y)
+                for (i in 1 until points.size) {
+                    val a = points[i - 1]
+                    val b = points[i]
+                    val cx = (a.x + b.x) / 2f
+                    cubicTo(cx, a.y, cx, b.y, b.x, b.y)
+                }
+            }
+            val fill = Path().apply {
+                moveTo(points.first().x, size.height)
+                lineTo(points.first().x, points.first().y)
+                for (i in 1 until points.size) {
+                    val a = points[i - 1]
+                    val b = points[i]
+                    val cx = (a.x + b.x) / 2f
+                    cubicTo(cx, a.y, cx, b.y, b.x, b.y)
+                }
+                lineTo(points.last().x, size.height)
+                close()
+            }
+            drawPath(
+                path = fill,
+                brush = Brush.verticalGradient(
+                    listOf(lineColor.copy(alpha = 0.25f), Color.Transparent),
+                ),
+            )
+            drawPath(
+                path = line,
+                color = lineColor,
+                style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round),
+            )
+            points.forEachIndexed { i, p ->
+                val r = if (i == highlightIndex) 6.dp.toPx() else 4.5.dp.toPx()
+                drawCircle(Color.White, radius = r, center = p)
+                drawCircle(lineColor, radius = r, center = p, style = Stroke(width = 2.5.dp.toPx()))
+            }
+        }
+        if (tooltip != null && highlightIndex in values.indices) {
+            val fx = if (values.size <= 1) 0.5f else highlightIndex.toFloat() / (values.size - 1)
+            val xDp = chartWidth * fx
+            val yDp = pad + (chartHeight - pad * 2) * (1f - values[highlightIndex] / maxValue)
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = colors.navy,
+                modifier = Modifier.offset(
+                    x = (xDp - 28.dp).coerceIn(0.dp, maxOf(0.dp, chartWidth - 60.dp)),
+                    y = (yDp - 36.dp).coerceAtLeast(0.dp),
+                ),
+            ) {
+                Text(
+                    text = tooltip,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                 )
             }
         }

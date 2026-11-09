@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.SelfImprovement
@@ -45,6 +46,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.focusflow.app.domain.model.AvatarStyle
@@ -175,46 +179,72 @@ fun OnboardingScreen(
 @Composable
 private fun WelcomeStep() {
     val colors = LocalFocusColors.current
+    val hill = Palette.Indigo
     Spacer(Modifier.height(28.dp))
-    GradientCard(
-        modifier = Modifier.fillMaxWidth(),
-        colors = listOf(colors.lavender, Palette.Purple.copy(alpha = 0.55f)),
+    Box(
+        modifier = Modifier
+            .size(68.dp)
+            .clip(CircleShape)
+            .background(Palette.Purple.copy(alpha = 0.85f)),
+        contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(170.dp)
-                    .clip(CircleShape)
-                    .background(Palette.White.copy(alpha = 0.35f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                IconBubble(
-                    icon = Icons.Rounded.SelfImprovement,
-                    tint = Palette.White,
-                    background = MaterialTheme.colorScheme.primary,
-                    size = 88.dp,
-                    iconSize = 44.dp,
-                )
-            }
-        }
+        Icon(
+            Icons.Rounded.Check,
+            contentDescription = null,
+            tint = Palette.White,
+            modifier = Modifier.size(38.dp),
+        )
     }
-    Spacer(Modifier.height(30.dp))
+    Spacer(Modifier.height(16.dp))
     Text(
-        text = "Focus on what\nmatters most.",
+        text = "FocusFlow",
         style = MaterialTheme.typography.displayMedium,
         color = MaterialTheme.colorScheme.onBackground,
         textAlign = TextAlign.Center,
     )
-    Spacer(Modifier.height(14.dp))
+    Spacer(Modifier.height(4.dp))
+    Text(
+        text = "Plan. Focus. Achieve.",
+        style = MaterialTheme.typography.bodyLarge,
+        color = colors.muted,
+        textAlign = TextAlign.Center,
+    )
+    Spacer(Modifier.height(24.dp))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .clip(RoundedCornerShape(32.dp))
+            .background(Brush.verticalGradient(listOf(colors.lavender, Palette.Lavender)))
+            .drawBehind {
+                val w = size.width
+                val h = size.height
+                val path = Path().apply {
+                    moveTo(0f, h * 0.62f)
+                    cubicTo(w * 0.25f, h * 0.45f, w * 0.55f, h * 0.55f, w * 0.75f, h * 0.5f)
+                    cubicTo(w * 0.9f, h * 0.47f, w * 0.97f, h * 0.52f, w, h * 0.5f)
+                    lineTo(w, h)
+                    lineTo(0f, h)
+                    close()
+                }
+                drawPath(path, Brush.verticalGradient(listOf(Palette.PurpleDeep, hill)))
+            },
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        Icon(
+            imageVector = IconCatalog.icon("cat"),
+            contentDescription = null,
+            tint = hill,
+            modifier = Modifier
+                .padding(top = 56.dp)
+                .size(110.dp),
+        )
+    }
+    Spacer(Modifier.height(24.dp))
     Text(
         text = "A calm space for deep work, gentle habits, and a clear view of your progress.",
-        style = MaterialTheme.typography.bodyLarge,
-        color = LocalFocusColors.current.muted,
+        style = MaterialTheme.typography.bodyMedium,
+        color = colors.muted,
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(horizontal = 10.dp),
     )
