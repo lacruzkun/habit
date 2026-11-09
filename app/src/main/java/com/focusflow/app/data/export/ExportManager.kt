@@ -11,6 +11,7 @@ import com.focusflow.app.data.repository.ReflectionRepository
 import com.focusflow.app.data.repository.ReminderRepository
 import com.focusflow.app.data.repository.SessionRepository
 import com.focusflow.app.data.repository.TaskRepository
+import com.focusflow.app.domain.model.ReminderSource
 import com.focusflow.app.domain.time.TimeSource
 import com.focusflow.app.notifications.ReminderScheduler
 import kotlinx.coroutines.Dispatchers
@@ -82,6 +83,10 @@ class ExportManager(
                 backup.distractions.size + backup.reflections.size + backup.reminders.size
             require(totalRecords <= 500_000) { "Backup contains too many records." }
 
+            val previousReminders = reminderRepository.getAll()
+            val previousTasks = taskRepository.getAllTasks()
+            val previousHabits = habitRepository.getAllHabits()
+
             database.withTransaction {
                 database.focusSessionDao().deleteAllSegments()
                 database.focusSessionDao().deleteAllSessions()
@@ -105,6 +110,9 @@ class ExportManager(
                 database.reminderDao().insertAll(backup.reminders)
             }
             preferencesRepository.replaceAll(backup.preferences)
+            previousReminders.forEach { reminderScheduler.cancel(ReminderSource.CUSTOM, it.id) }
+            previousTasks.forEach { reminderScheduler.cancel(ReminderSource.TASK, it.id) }
+            previousHabits.forEach { reminderScheduler.cancel(ReminderSource.HABIT, it.id) }
             reminderScheduler.sync()
             BackupSummary(
                 tasks = backup.tasks.size,
@@ -117,6 +125,10 @@ class ExportManager(
     }
 
     suspend fun clearAllData() = withContext(Dispatchers.IO) {
+        val previousReminders = reminderRepository.getAll()
+        val previousTasks = taskRepository.getAllTasks()
+        val previousHabits = habitRepository.getAllHabits()
+
         database.withTransaction {
             database.focusSessionDao().deleteAllSegments()
             database.focusSessionDao().deleteAllSessions()
@@ -130,6 +142,9 @@ class ExportManager(
             database.activeTimerDao().clear()
         }
         preferencesRepository.replaceAll(com.focusflow.app.data.prefs.UserPreferences())
+        previousReminders.forEach { reminderScheduler.cancel(ReminderSource.CUSTOM, it.id) }
+        previousTasks.forEach { reminderScheduler.cancel(ReminderSource.TASK, it.id) }
+        previousHabits.forEach { reminderScheduler.cancel(ReminderSource.HABIT, it.id) }
         taskRepository.seedDefaultCategories()
         reminderRepository.seedDefault()
         reminderScheduler.sync()

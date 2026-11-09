@@ -152,7 +152,7 @@ fun StatsScreen(
                 )
                 StatTile(
                     label = "Focus rate",
-                    value = percentLabel(state.summary?.focusRate),
+                    value = percentLabel(state.summary?.focusRate?.times(100)),
                     modifier = Modifier.weight(1f),
                     accent = colors.mint,
                     icon = Icons.Rounded.Bolt,
@@ -182,7 +182,7 @@ fun StatsScreen(
                         )
                     }
                     Text(
-                        percentLabel(state.summary?.focusRate),
+                        percentLabel(state.summary?.focusRate?.times(100)),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )

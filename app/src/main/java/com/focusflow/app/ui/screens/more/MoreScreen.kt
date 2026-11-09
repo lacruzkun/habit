@@ -1,6 +1,7 @@
 package com.focusflow.app.ui.screens.more
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Archive
@@ -201,11 +203,12 @@ private fun MenuRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Surface(
-            onClick = onClick,
             shape = RoundedCornerShape(14.dp),
             color = colors.background,
             modifier = Modifier.size(38.dp),
@@ -223,20 +226,16 @@ private fun MenuRow(
             Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             Text(subtitle, style = MaterialTheme.typography.labelSmall, color = colors.muted)
         }
-        Surface(
-            onClick = onClick,
-            shape = CircleShape,
-            color = Color.Transparent,
+        Box(
             modifier = Modifier.size(30.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Rounded.ChevronRight,
-                    contentDescription = null,
-                    tint = colors.muted,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
+            Icon(
+                Icons.Rounded.ChevronRight,
+                contentDescription = null,
+                tint = colors.muted,
+                modifier = Modifier.size(18.dp),
+            )
         }
     }
 }

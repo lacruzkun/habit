@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.focusflow.app.domain.model.TaskPriority
 import com.focusflow.app.domain.model.maskDays
+import com.focusflow.app.ui.components.ConfirmDialog
 import com.focusflow.app.ui.components.EmptyState
 import com.focusflow.app.ui.components.IconBubble
 import com.focusflow.app.ui.components.IconCatalog
@@ -74,6 +75,8 @@ fun TasksScreen(
     onDelete: (Long) -> Unit,
 ) {
     val colors = LocalFocusColors.current
+    var pendingDeleteId by remember { mutableStateOf<Long?>(null) }
+    var pendingDeleteName by remember { mutableStateOf("") }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -289,7 +292,8 @@ fun TasksScreen(
                                         },
                                         onClick = {
                                             menuOpen = false
-                                            onDelete(task.id)
+                                            pendingDeleteId = task.id
+                                            pendingDeleteName = task.name
                                         },
                                     )
                                 }
@@ -299,6 +303,17 @@ fun TasksScreen(
                 }
             }
         }
+        ConfirmDialog(
+            visible = pendingDeleteId != null,
+            title = "Delete task permanently?",
+            message = "\"$pendingDeleteName\" will be removed. Focus history is kept.",
+            confirmLabel = "Delete",
+            onConfirm = {
+                pendingDeleteId?.let(onDelete)
+                pendingDeleteId = null
+            },
+            onDismiss = { pendingDeleteId = null },
+        )
     }
 }
 

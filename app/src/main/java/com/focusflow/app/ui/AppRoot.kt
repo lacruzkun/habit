@@ -1,6 +1,7 @@
 package com.focusflow.app.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -500,6 +501,7 @@ private fun FocusBottomBar(
                     Column(
                         modifier = Modifier
                             .clip(RoundedCornerShape(22.dp))
+                            .clickable { onNavigate(tab.route) }
                             .background(
                                 if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
                             )

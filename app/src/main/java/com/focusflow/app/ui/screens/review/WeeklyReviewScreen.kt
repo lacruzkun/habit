@@ -138,7 +138,7 @@ fun WeeklyReviewScreen(
                     )
                     StatTile(
                         label = "Focus rate",
-                        value = percentLabel(data.current.focusRate),
+                        value = percentLabel(data.current.focusRate?.times(100)),
                         modifier = Modifier.weight(1f),
                         accent = colors.mint,
                     )

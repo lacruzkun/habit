@@ -18,6 +18,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class TimerService : Service() {
@@ -25,6 +26,8 @@ class TimerService : Service() {
     private lateinit var notificationHelper: NotificationHelper
     private lateinit var timerManager: TimerManager
     private var observing = false
+    private var foregroundStarted = false
+    private var lastNotificationKey: String? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -56,32 +59,33 @@ class TimerService : Service() {
 
     private fun observeTimer() {
         scope.launch {
-            timerManager.state.collectLatest { state ->
-                if (state == null) {
-                    stopForegroundNow()
-                    stopSelf()
-                } else {
+            combine(timerManager.state, timerManager.tick) { state, elapsed -> state to elapsed }
+                .collectLatest { (state, elapsed) ->
+                    if (state == null) {
+                        stopForegroundNow()
+                        stopSelf()
+                        return@collectLatest
+                    }
                     val remaining = com.focusflow.app.domain.timer.TimerMath.remainingSeconds(
                         state,
-                        timerManager.tick.value,
+                        elapsed,
                         System.currentTimeMillis(),
                     )
-                    val notification = notificationHelper.timerNotification(
-                        state,
-                        timerManager.tick.value,
-                    )
-                    notifyForeground(notification)
+                    val key = "${state.sessionType}|${state.status}|${state.taskName}|$remaining"
+                    if (key == lastNotificationKey) return@collectLatest
+                    lastNotificationKey = key
+                    val notification = notificationHelper.timerNotification(state, elapsed)
+                    if (!foregroundStarted) {
+                        startForegroundCompat(notification)
+                        foregroundStarted = true
+                    } else {
+                        val manager = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
+                        manager.notify(NotificationHelper.TIMER_NOTIFICATION_ID, notification)
+                    }
                     if (remaining <= 0) {
                         notificationHelper.cancel(NotificationHelper.TIMER_NOTIFICATION_ID)
                     }
                 }
-            }
-        }
-        scope.launch {
-            timerManager.tick.collectLatest { elapsed ->
-                val state = timerManager.state.value ?: return@collectLatest
-                notifyForeground(notificationHelper.timerNotification(state, elapsed))
-            }
         }
         scope.launch {
             timerManager.events.collect { event ->
@@ -119,12 +123,6 @@ class TimerService : Service() {
             .setOngoing(true)
             .setSilent(true)
             .build()
-        startForegroundCompat(notification)
-    }
-
-    private fun notifyForeground(notification: Notification) {
-        val manager = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
-        manager.notify(NotificationHelper.TIMER_NOTIFICATION_ID, notification)
         startForegroundCompat(notification)
     }
 

@@ -90,6 +90,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val prefs = state.prefs
     var showClear by remember { mutableStateOf(false) }
+    var pendingImport by remember { mutableStateOf<Uri?>(null) }
     var name by remember(prefs.userName) { mutableStateOf(prefs.userName) }
     val notificationPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -103,7 +104,7 @@ fun SettingsScreen(
     ) { uri -> uri?.let(onExportCsv) }
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
-    ) { uri -> uri?.let(onImportJson) }
+    ) { uri -> pendingImport = uri }
 
     LaunchedEffect(messages) {
         messages.collect { message ->
@@ -408,6 +409,17 @@ fun SettingsScreen(
         }
     }
 
+    ConfirmDialog(
+        visible = pendingImport != null,
+        title = "Restore from backup?",
+        message = "This replaces all tasks, habits, sessions, categories, reminders, and settings on this device.",
+        confirmLabel = "Restore",
+        onConfirm = {
+            pendingImport?.let(onImportJson)
+            pendingImport = null
+        },
+        onDismiss = { pendingImport = null },
+    )
     ConfirmDialog(
         visible = showClear,
         title = "Clear all data?",

@@ -229,7 +229,6 @@ class TimerManager(
                     endMillis = endWall.coerceAtMost(nowWall),
                 )
             }
-            tickerJob?.cancel()
 
             if (current.isBreak) {
                 val session = FocusSessionEntity(
@@ -321,7 +320,6 @@ class TimerManager(
     }
 
     private suspend fun clearLocked() {
-        tickerJob?.cancel()
         _state.value = null
         activeTimerDao.clear()
     }

@@ -17,6 +17,8 @@ Coverage:
 | Daily streaks, missing-today grace, partial values, weekly-count habits, weekday schedules, weekly completion counts | `domain/habits/HabitCalculatorTest` |
 | Weekly goal, best/quietest day, insight generation | `domain/review/WeeklyReviewCalculatorTest` |
 | Room CRUD, task archiving, cascade deletes, segment overlap, habit completion upsert, weekly reflection upsert | `data/db/FocusFlowDatabaseTest` |
+| Timer completion handoff and session persistence | `timer/TimerManagerTest` |
+| Timer notification copy and actions for running, paused, and break states | `notifications/NotificationHelperTest` |
 | Shared Compose components render and handle clicks (Robolectric) | `ui/components/CommonComponentsTest` |
 | App launch on Robolectric | `AppSmokeTest` |
 
@@ -48,4 +50,6 @@ Because the timer and reminder behavior depends on the OS, verify on a physical 
   optimization settings; inexact delivery is the fallback.
 - Notification permission is requested during onboarding; declining it suppresses alerts but
   not timer tracking.
+- Some OEMs defer `BOOT_COMPLETED` manifest receivers (for example, TECNO/Transsion offloads
+  them until the device is idle). Alarms are also rescheduled whenever the app starts.
 - The app is intentionally offline-only; there is no cloud backup.
