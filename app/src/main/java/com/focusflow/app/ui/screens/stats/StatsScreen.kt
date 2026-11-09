@@ -1,7 +1,12 @@
 package com.focusflow.app.ui.screens.stats
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxHeight
+import com.focusflow.app.ui.components.PillTabs
+import com.focusflow.app.ui.components.FocusRing
+import com.focusflow.app.ui.components.HorizontalDivider
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -67,7 +72,7 @@ fun StatsScreen(
             Column {
                 Text(
                     "Statistics",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineMedium,
                 )
                 Text(
                     state.rangeLabel.ifBlank { "Your focus at a glance" },
@@ -77,85 +82,112 @@ fun StatsScreen(
             }
         }
         item {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(PeriodType.entries.filter { it != PeriodType.CUSTOM }) { period ->
-                    val selected = state.period == period
-                    Surface(
-                        onClick = { onPeriodChange(period) },
-                        shape = RoundedCornerShape(50),
-                        color = if (selected) MaterialTheme.colorScheme.primary else colors.card,
-                    ) {
-                        Text(
-                            text = period.label,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (selected) {
-                                MaterialTheme.colorScheme.onPrimary
-                            } else {
-                                colors.muted
-                            },
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
-                        )
+            PillTabs(
+                options = PeriodType.entries.filter { it != PeriodType.CUSTOM },
+                selected = state.period,
+                label = { it.label },
+                onSelect = onPeriodChange,
+            )
+        }
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                SoftCard(modifier = Modifier.weight(1.2f).fillMaxHeight()) {
+                    IconBubble(
+                        icon = Icons.Rounded.Timer,
+                        tint = MaterialTheme.colorScheme.primary,
+                        background = colors.lavender,
+                        size = 36.dp,
+                        iconSize = 20.dp,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        formatDurationOrZero(state.summary?.totalSeconds ?: 0),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        "Total Focus Time",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.muted,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    ChangeText(
+                        percent = state.totalChangePercent,
+                        amountLabel = "vs previous",
+                    )
+                }
+                SoftCard(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    contentPadding = 14.dp,
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        FocusRing(
+                            progress = (state.summary?.focusRate ?: 0.0).coerceIn(0.0, 1.0).toFloat(),
+                            modifier = Modifier.size(96.dp),
+                            strokeWidth = 14f,
+                            color = colors.success,
+                            trackColor = colors.lavender,
+                        ) {
+                            Text(
+                                percentLabel(state.summary?.focusRate?.times(100)),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
                     }
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Focus Rate",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.muted,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                    Text(
+                        "${state.summary?.completedSessions ?: 0} of ${state.summary?.startedSessions ?: 0} sessions",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.muted,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
                 }
             }
         }
         item {
-            GradientCard(modifier = Modifier.fillMaxWidth()) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            "Total focus",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = colors.muted,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            formatDurationOrZero(state.summary?.totalSeconds ?: 0),
-                            style = MaterialTheme.typography.displaySmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        ChangeText(
-                            percent = state.totalChangePercent,
-                            amountLabel = "vs previous period",
-                        )
-                    }
-                    IconBubble(
-                        icon = Icons.Rounded.Timer,
-                        tint = MaterialTheme.colorScheme.primary,
-                        background = Color.White.copy(alpha = 0.6f),
-                        size = 52.dp,
-                        iconSize = 24.dp,
-                    )
-                }
-                Spacer(Modifier.height(18.dp))
+            SoftCard(modifier = Modifier.fillMaxWidth()) {
                 MiniBarChart(
                     values = state.chartValues,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp),
+                        .height(140.dp),
                     barColor = MaterialTheme.colorScheme.primary,
-                    inactiveColor = Color.White.copy(alpha = 0.5f),
+                    inactiveColor = colors.lavender,
                 )
                 Spacer(Modifier.height(8.dp))
                 ChartLabelsFor(state)
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = "Best day: " + (state.bestDay?.let {
+                        "${formatDateShort(it.date)} · ${formatDurationOrZero(it.seconds)}"
+                    } ?: "Not enough data yet"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.muted,
+                )
             }
         }
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 StatTile(
                     label = "Sessions",
                     value = "${state.summary?.completedSessions ?: 0}",
                     modifier = Modifier.weight(1f),
                     accent = MaterialTheme.colorScheme.primary,
                     icon = Icons.Rounded.CheckCircle,
-                )
-                StatTile(
-                    label = "Focus rate",
-                    value = percentLabel(state.summary?.focusRate?.times(100)),
-                    modifier = Modifier.weight(1f),
-                    accent = colors.mint,
-                    icon = Icons.Rounded.Bolt,
                 )
                 StatTile(
                     label = "Daily avg",
@@ -167,57 +199,10 @@ fun StatsScreen(
             }
         }
         item {
-            SoftCard(modifier = Modifier.fillMaxWidth()) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            "Focus rate",
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                        Text(
-                            "${state.summary?.completedSessions ?: 0} completed of " +
-                                "${state.summary?.startedSessions ?: 0} started",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.muted,
-                        )
-                    }
-                    Text(
-                        percentLabel(state.summary?.focusRate?.times(100)),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                Spacer(Modifier.height(10.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .background(colors.grid, CircleShape),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(
-                                ((state.summary?.focusRate ?: 0.0).coerceIn(0.0, 1.0)).toFloat(),
-                            )
-                            .height(8.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape),
-                    )
-                }
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = "Best day: " + (state.bestDay?.let {
-                        "${formatDateShort(it.date)} · ${formatDurationOrZero(it.seconds)}"
-                    } ?: "Not enough data yet"),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = colors.muted,
-                )
-            }
-        }
-        item {
             SectionHeader(
-                title = "By task",
+                title = "Top Tasks",
                 subtitle = "Where your focus went",
-                actionLabel = "All tasks",
+                actionLabel = "See all",
                 onAction = onSeeTasks,
             )
         }
@@ -230,8 +215,13 @@ fun StatsScreen(
                 )
             }
         } else {
-            items(state.topTasks, key = { "${it.taskId}-${it.name}" }) { task ->
-                TaskBar(task = task, maxSeconds = state.topTasks.first().seconds)
+            item {
+                SoftCard(modifier = Modifier.fillMaxWidth(), contentPadding = 14.dp) {
+                    state.topTasks.forEachIndexed { index, task ->
+                        if (index > 0) HorizontalDivider()
+                        TaskBar(task = task, maxSeconds = state.topTasks.first().seconds)
+                    }
+                }
             }
         }
         item {
@@ -327,7 +317,7 @@ private fun ChangeText(percent: Double?, amountLabel: String) {
 private fun TaskBar(task: TaskFocus, maxSeconds: Long) {
     val colors = LocalFocusColors.current
     val ratio = if (maxSeconds <= 0) 0f else (task.seconds.toFloat() / maxSeconds).coerceIn(0f, 1f)
-    SoftCard(modifier = Modifier.fillMaxWidth(), contentPadding = 14.dp) {
+    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 task.name,

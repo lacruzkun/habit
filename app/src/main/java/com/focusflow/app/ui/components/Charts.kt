@@ -94,17 +94,27 @@ fun MiniBarChart(
     val maxValue = max(1L, values.maxOrNull() ?: 1L)
     Canvas(modifier = modifier) {
         if (values.isEmpty()) return@Canvas
-        val gap = size.width * 0.012f
+        val gap = if (values.size <= 8) 12.dp.toPx() else size.width * 0.012f
         val barWidth = (size.width - gap * (values.size - 1)) / values.size
+        val radius = minOf(barWidth * 0.32f, 10.dp.toPx())
         values.forEachIndexed { index, value ->
             val ratio = (value.toFloat() / maxValue.toFloat()).coerceIn(0f, 1f)
-            val height = max(4f, size.height * ratio)
+            val height = max(6f, size.height * ratio)
             val left = index * (barWidth + gap)
+            val top = size.height - height
             drawRoundRect(
-                color = if (value > 0) barColor else inactiveColor,
-                topLeft = Offset(left, size.height - height),
+                brush = if (value > 0) {
+                    Brush.verticalGradient(
+                        colors = listOf(barColor.copy(alpha = 0.65f), barColor),
+                        startY = top,
+                        endY = size.height,
+                    )
+                } else {
+                    Brush.verticalGradient(listOf(inactiveColor, inactiveColor))
+                },
+                topLeft = Offset(left, top),
                 size = Size(barWidth, height),
-                cornerRadius = CornerRadius(barWidth / 2f, barWidth / 2f),
+                cornerRadius = CornerRadius(radius, radius),
             )
         }
     }
@@ -115,9 +125,9 @@ fun PomodoroDots(
     completed: Int,
     total: Int,
     modifier: Modifier = Modifier,
+    activeColor: Color = MaterialTheme.colorScheme.primary,
+    inactiveColor: Color = LocalFocusColors.current.grid,
 ) {
-    val colors = LocalFocusColors.current
-    val activeColor = MaterialTheme.colorScheme.primary
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -129,7 +139,7 @@ fun PomodoroDots(
                 modifier = Modifier
                     .size(if (active) 10.dp else 8.dp)
                     .clip(CircleShape)
-                    .background(if (active) activeColor else colors.grid),
+                    .background(if (active) activeColor else inactiveColor),
             )
         }
     }

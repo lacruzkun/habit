@@ -1,6 +1,13 @@
 package com.focusflow.app.ui.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.TrackChanges
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Path
+import com.focusflow.app.domain.time.formatTimer
+import com.focusflow.app.ui.components.HorizontalDivider
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -83,38 +90,30 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconBubble(
-                    icon = IconCatalog.icon(state.avatar.name.lowercase()),
-                    tint = MaterialTheme.colorScheme.primary,
-                    background = colors.lavender,
-                    size = 46.dp,
-                )
-                Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
-                        text = "${state.greeting}, ${state.userName}",
-                        style = MaterialTheme.typography.titleMedium,
+                        text = "Hi, ${state.userName} \uD83D\uDC4B",
+                        style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onBackground,
                     )
                     Text(
-                        text = state.dateLabel,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = "Let's make today count.",
+                        style = MaterialTheme.typography.bodyMedium,
                         color = colors.muted,
                     )
                 }
                 Surface(
                     shape = CircleShape,
-                    color = colors.card,
+                    color = colors.lavender,
                     onClick = onSeeStats,
-                    modifier = Modifier.size(44.dp),
+                    modifier = Modifier.size(48.dp),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        IconBubble(
-                            icon = IconCatalog.icon("star"),
-                            tint = MaterialTheme.colorScheme.secondary,
-                            background = Color.Transparent,
-                            size = 30.dp,
-                            iconSize = 22.dp,
+                        Icon(
+                            imageVector = IconCatalog.icon(state.avatar.name.lowercase()),
+                            contentDescription = "Statistics",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(26.dp),
                         )
                     }
                 }
@@ -122,70 +121,101 @@ fun HomeScreen(
         }
 
         item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(30.dp))
-                    .background(
-                        Brush.linearGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                Palette.PurpleDeep,
-                                Palette.Indigo,
-                            ),
-                        ),
-                    )
-                    .padding(22.dp),
+            val focusTask = state.recommended ?: state.tasks.firstOrNull()
+            val focusMinutes = focusTask?.task?.focusMinutes ?: 25
+            val waveColor = MaterialTheme.colorScheme.primary
+            SoftCard(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onStartFocus,
+                contentPadding = 0.dp,
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    FocusRing(
-                        progress = progress,
-                        modifier = Modifier.size(122.dp),
-                        strokeWidth = 12f,
-                        trackColor = Color.White.copy(alpha = 0.2f),
-                        color = Color.White,
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = formatDurationOrZero(state.focusSeconds),
-                                style = MaterialTheme.typography.titleLarge,
-                                color = Color.White,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                text = "of ${formatDuration(state.targetSeconds)}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.White.copy(alpha = 0.7f),
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .drawBehind {
+                            val w = size.width
+                            val h = size.height
+                            val wave = Path().apply {
+                                moveTo(0f, h * 0.78f)
+                                cubicTo(w * 0.25f, h * 0.62f, w * 0.45f, h * 0.95f, w * 0.7f, h * 0.78f)
+                                cubicTo(w * 0.85f, h * 0.68f, w * 0.95f, h * 0.72f, w, h * 0.7f)
+                                lineTo(w, h)
+                                lineTo(0f, h)
+                                close()
+                            }
+                            drawPath(
+                                path = wave,
+                                brush = Brush.verticalGradient(
+                                    listOf(waveColor.copy(alpha = 0.22f), waveColor.copy(alpha = 0.08f)),
+                                ),
                             )
                         }
-                    }
-                    Spacer(Modifier.width(20.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = if (progress >= 1f) "Daily goal reached" else "Today's focus",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color.White,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = "${state.sessionsStarted} session${if (state.sessionsStarted == 1) "" else "s"} started",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.75f),
-                        )
-                        Spacer(Modifier.height(14.dp))
-                        Button(
-                            onClick = onStartFocus,
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
-                                contentColor = MaterialTheme.colorScheme.primary,
-                            ),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
-                        ) {
-                            Icon(Icons.Rounded.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Start focus", style = MaterialTheme.typography.labelMedium)
+                        .padding(horizontal = 20.dp, vertical = 18.dp),
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Rounded.TrackChanges,
+                                contentDescription = null,
+                                tint = Palette.Pink,
+                                modifier = Modifier.size(22.dp),
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Today's Focus",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Icon(
+                                Icons.Rounded.ChevronRight,
+                                contentDescription = null,
+                                tint = colors.muted,
+                            )
                         }
+                        Spacer(Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    text = formatTimer(focusMinutes * 60L),
+                                    style = MaterialTheme.typography.displayMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = focusTask?.task?.name ?: "Open focus session",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Spacer(Modifier.height(2.dp))
+                                Text(
+                                    text = "${formatDurationOrZero(state.focusSeconds)} of " +
+                                        "${formatDuration(state.targetSeconds)} today",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = colors.muted,
+                                )
+                            }
+                            Surface(
+                                shape = CircleShape,
+                                color = Palette.Purple,
+                                onClick = {
+                                    if (focusTask != null) onStartTaskFocus(focusTask.task.id) else onStartFocus()
+                                },
+                                shadowElevation = 6.dp,
+                                modifier = Modifier.size(68.dp),
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Rounded.PlayArrow,
+                                        contentDescription = "Start focus",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(34.dp),
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(26.dp))
                     }
                 }
             }
@@ -193,7 +223,7 @@ fun HomeScreen(
 
         item {
             SectionHeader(
-                title = "Today's tasks",
+                title = "Your Tasks",
                 subtitle = if (state.tasks.isEmpty()) "Nothing scheduled for today" else "${state.tasks.size} planned",
                 actionLabel = "See all",
                 onAction = onSeeTasks,
@@ -228,66 +258,55 @@ fun HomeScreen(
                 }
             }
         } else {
-            items(state.tasks.take(4).size) { index ->
-                val task = state.tasks[index]
-                SoftCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { onOpenTask(task.task.id) },
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconBubble(
-                            icon = IconCatalog.icon(task.task.iconKey),
-                            tint = Color(task.task.colorArgb),
-                            background = Color(task.task.colorArgb).copy(alpha = 0.13f),
-                            size = 42.dp,
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+            item {
+                SoftCard(modifier = Modifier.fillMaxWidth(), contentPadding = 8.dp) {
+                    state.tasks.take(4).forEachIndexed { index, task ->
+                        val perSession = (task.task.focusMinutes * 60L).coerceAtLeast(60L)
+                        val target = ((task.task.dailyTargetMinutes * 60L + perSession - 1) / perSession).toInt()
+                        val done = (task.todaySeconds / perSession).toInt()
+                        if (index > 0) HorizontalDivider(Modifier.padding(horizontal = 8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable { onOpenTask(task.task.id) }
+                                .padding(horizontal = 8.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            IconBubble(
+                                icon = IconCatalog.icon(task.task.iconKey),
+                                tint = Color(task.task.colorArgb),
+                                background = Color(task.task.colorArgb).copy(alpha = 0.13f),
+                                size = 42.dp,
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
                                 Text(
                                     text = task.task.name,
                                     style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier.weight(1f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
-                                    text = "${(task.progress * 100).toInt()}%",
+                                    text = if (done > 0) "$done / $target Pomodoros" else "$target Pomodoros",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = colors.muted,
                                 )
                             }
-                            Spacer(Modifier.height(7.dp))
-                            LinearProgressIndicator(
-                                progress = { task.progress },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(6.dp)
-                                    .clip(CircleShape),
-                                color = Color(task.task.colorArgb),
-                                trackColor = colors.grid,
-                            )
-                            Spacer(Modifier.height(5.dp))
-                            Text(
-                                text = "${formatDurationOrZero(task.todaySeconds)} of ${formatDuration(task.task.dailyTargetMinutes * 60L)}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = colors.muted,
-                            )
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        Surface(
-                            shape = CircleShape,
-                            color = colors.lavender,
-                            onClick = { onStartTaskFocus(task.task.id) },
-                            modifier = Modifier.size(36.dp),
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    Icons.Rounded.PlayArrow,
-                                    contentDescription = "Start focus",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(20.dp),
-                                )
+                            Surface(
+                                shape = CircleShape,
+                                color = colors.lavender,
+                                onClick = { onStartTaskFocus(task.task.id) },
+                                modifier = Modifier.size(30.dp),
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        Icons.Rounded.PlayArrow,
+                                        contentDescription = "Start focus",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
                             }
                         }
                     }

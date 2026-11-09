@@ -69,12 +69,31 @@ fun MoreScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            Text("More", style = MaterialTheme.typography.headlineSmall)
-            Text(
-                "Plan, reflect, and tune your setup.",
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.muted,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("More", style = MaterialTheme.typography.headlineMedium)
+                    Text(
+                        "Plan, reflect, and tune your setup.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.muted,
+                    )
+                }
+                Surface(
+                    shape = androidx.compose.foundation.shape.CircleShape,
+                    color = colors.lavender,
+                    onClick = onSettings,
+                    modifier = Modifier.size(42.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Rounded.Settings,
+                            contentDescription = "Settings",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                }
+            }
         }
         item {
             SoftCard(modifier = Modifier.fillMaxWidth()) {
@@ -210,7 +229,7 @@ private fun MenuRow(
     ) {
         Surface(
             shape = RoundedCornerShape(14.dp),
-            color = colors.background,
+            color = colors.lavender,
             modifier = Modifier.size(38.dp),
         ) {
             Box(contentAlignment = Alignment.Center) {

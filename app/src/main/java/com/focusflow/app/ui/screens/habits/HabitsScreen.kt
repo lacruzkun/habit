@@ -1,6 +1,9 @@
 package com.focusflow.app.ui.screens.habits
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import com.focusflow.app.ui.components.RoundAddButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,57 +65,66 @@ fun HabitsScreen(
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("Habits", style = MaterialTheme.typography.headlineSmall)
+                    Text("Habits", style = MaterialTheme.typography.headlineMedium)
                     Text(
                         "Small actions, repeated daily.",
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.muted,
                     )
                 }
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                    onClick = onAdd,
-                    modifier = Modifier.size(42.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Rounded.Add,
-                            contentDescription = "New habit",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                        )
-                    }
-                }
+                RoundAddButton(onClick = onAdd, contentDescription = "New habit")
             }
         }
         item {
-            GradientCard(modifier = Modifier.fillMaxWidth()) {
+            val streak = state.habits.maxOfOrNull { it.stats.currentStreak } ?: 0
+            GradientCard(
+                modifier = Modifier.fillMaxWidth(),
+                colors = listOf(Color(0xFFFFEFC9), Color(0xFFFFD9A0)),
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(
-                            "Today",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = colors.muted,
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Rounded.LocalFireDepartment,
+                                contentDescription = null,
+                                tint = Color(0xFFFF8A1F),
+                                modifier = Modifier.size(24.dp),
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                "Daily Streak",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = Color(0xFF2E2459),
+                            )
+                        }
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "${state.completedToday} of ${state.scheduledToday}",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            "$streak ${if (streak == 1) "day" else "days"}",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = Color(0xFF2E2459),
                         )
                         Text(
-                            "scheduled habits completed",
+                            "${state.completedToday} of ${state.scheduledToday} done today",
                             style = MaterialTheme.typography.bodySmall,
-                            color = colors.muted,
+                            color = Color(0xFF6B5A3A),
                         )
                     }
-                    IconBubble(
-                        icon = Icons.Rounded.LocalFireDepartment,
-                        tint = colors.peach,
-                        background = Color.White.copy(alpha = 0.6f),
-                        size = 52.dp,
-                        iconSize = 26.dp,
-                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        listOf(18, 30, 42, 56, 70).forEachIndexed { index, h ->
+                            Box(
+                                modifier = Modifier
+                                    .width(11.dp)
+                                    .height(h.dp)
+                                    .background(
+                                        Color(0xFFFF9F1C).copy(alpha = 0.55f + index * 0.11f),
+                                        RoundedCornerShape(5.dp),
+                                    ),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -230,6 +242,40 @@ fun HabitsScreen(
                         accent = colors.mint,
                         icon = Icons.Rounded.SelfImprovement,
                     )
+                }
+            }
+            item {
+                val bestStreak = state.habits.maxOfOrNull { it.stats.currentStreak } ?: 0
+                if (bestStreak > 0) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(
+                                Brush.linearGradient(listOf(Color(0xFF4A3F8F), Color(0xFF2E2563))),
+                            )
+                            .padding(horizontal = 20.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "You're on fire! \uD83D\uDD25",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White,
+                            )
+                            Text(
+                                "Keep up the great work!",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.75f),
+                            )
+                        }
+                        Icon(
+                            imageVector = IconCatalog.icon("cat"),
+                            contentDescription = null,
+                            tint = Color(0xFFD8CCFA),
+                            modifier = Modifier.size(40.dp),
+                        )
+                    }
                 }
             }
         }

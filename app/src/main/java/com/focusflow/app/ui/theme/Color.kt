@@ -40,6 +40,7 @@ data class FocusColors(
     val backgroundGradient: List<Color>,
     val success: Color,
     val danger: Color,
+    val navy: Color = Color(0xFF2E2459),
 )
 
 val LightFocusColors = FocusColors(
@@ -53,7 +54,7 @@ val LightFocusColors = FocusColors(
     grid = Color(0xFFE9E1F7),
     card = Color.White,
     background = Palette.Cream,
-    backgroundGradient = listOf(Color(0xFFFFF8FD), Color(0xFFF5EEFF)),
+    backgroundGradient = listOf(Color(0xFFEFE7FF), Color(0xFFF8F3FF), Color(0xFFF3ECFF)),
     success = Color(0xFF1E9E6A),
     danger = Palette.Danger,
 )

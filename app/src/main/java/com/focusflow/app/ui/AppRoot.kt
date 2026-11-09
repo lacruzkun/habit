@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -481,52 +482,46 @@ private fun FocusBottomBar(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 22.dp, vertical = 10.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
         Surface(
-            shape = RoundedCornerShape(30.dp),
+            shape = RoundedCornerShape(28.dp),
             color = colors.card,
             tonalElevation = 0.dp,
-            shadowElevation = 8.dp,
+            shadowElevation = 10.dp,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 tabs.forEach { tab ->
                     val selected = currentRoute == tab.route
+                    val tint = if (selected) MaterialTheme.colorScheme.primary else colors.muted
                     Column(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(22.dp))
+                            .weight(1f)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(if (selected) colors.lavender else Color.Transparent)
                             .clickable { onNavigate(tab.route) }
-                            .background(
-                                if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                            )
-                            .padding(horizontal = 16.dp, vertical = 9.dp),
+                            .padding(vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = tab.icon,
-                                contentDescription = tab.label,
-                                tint = if (selected) MaterialTheme.colorScheme.onPrimary else colors.muted,
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(Color.Transparent),
-                            )
-                            if (selected) {
-                                Spacer(Modifier.width(6.dp))
-                                Text(
-                                    text = tab.label,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                )
-                            }
-                        }
+                        Icon(
+                            imageVector = tab.icon,
+                            contentDescription = tab.label,
+                            tint = tint,
+                            modifier = Modifier.size(22.dp),
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = tab.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = tint,
+                            maxLines = 1,
+                        )
                     }
                 }
             }

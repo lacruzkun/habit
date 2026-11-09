@@ -2,6 +2,7 @@ package com.focusflow.app.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
@@ -35,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -69,8 +74,15 @@ fun SoftCard(
 ) {
     val shape = RoundedCornerShape(24.dp)
     val base = modifier
+        .shadow(
+            elevation = 6.dp,
+            shape = shape,
+            ambientColor = Color(0xFF6C4CF1).copy(alpha = 0.10f),
+            spotColor = Color(0xFF6C4CF1).copy(alpha = 0.14f),
+        )
         .clip(shape)
         .background(color)
+        .border(1.dp, Color.White.copy(alpha = 0.7f), shape)
         .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
     Column(
         modifier = base.padding(contentPadding),
@@ -177,7 +189,7 @@ fun ScreenHeader(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -425,4 +437,58 @@ fun HorizontalDivider(modifier: Modifier = Modifier) {
             .height(1.dp)
             .background(LocalFocusColors.current.grid.copy(alpha = 0.5f)),
     )
+}
+
+/** Segmented pill tabs: dark navy when selected, soft lavender otherwise (as in the design). */
+@Composable
+fun <T> PillTabs(
+    options: List<T>,
+    selected: T,
+    label: (T) -> String,
+    onSelect: (T) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = LocalFocusColors.current
+    LazyRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(options) { option ->
+            val isSelected = option == selected
+            Surface(
+                onClick = { onSelect(option) },
+                shape = RoundedCornerShape(50),
+                color = if (isSelected) colors.navy else colors.lavender,
+            ) {
+                Text(
+                    text = label(option),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (isSelected) Color.White else colors.muted,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 9.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RoundAddButton(
+    onClick: () -> Unit,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        shape = CircleShape,
+        color = LocalFocusColors.current.lavender,
+        onClick = onClick,
+        modifier = modifier.size(42.dp),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = androidx.compose.material.icons.Icons.Rounded.Add,
+                contentDescription = contentDescription,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
 }

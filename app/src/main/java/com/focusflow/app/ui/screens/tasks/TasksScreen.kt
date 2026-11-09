@@ -52,6 +52,8 @@ import com.focusflow.app.domain.model.TaskPriority
 import com.focusflow.app.domain.model.maskDays
 import com.focusflow.app.ui.components.ConfirmDialog
 import com.focusflow.app.ui.components.EmptyState
+import com.focusflow.app.ui.components.PillTabs
+import com.focusflow.app.ui.components.RoundAddButton
 import com.focusflow.app.ui.components.IconBubble
 import com.focusflow.app.ui.components.IconCatalog
 import com.focusflow.app.ui.components.ScreenHeader
@@ -87,20 +89,7 @@ fun TasksScreen(
             subtitle = "${state.totalActive} active · ${state.totalArchived} archived",
             onBack = onBack,
             actions = {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                    onClick = onAdd,
-                    modifier = Modifier.size(42.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Rounded.Add,
-                            contentDescription = "New task",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                        )
-                    }
-                }
+                RoundAddButton(onClick = onAdd, contentDescription = "New task")
             },
         )
         OutlinedTextField(
@@ -116,32 +105,19 @@ fun TasksScreen(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         )
         Spacer(Modifier.height(12.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            TaskFilter.entries.forEach { filter ->
-                val selected = state.filter == filter
-                Surface(
-                    onClick = { onFilterChange(filter) },
-                    shape = RoundedCornerShape(50),
-                    color = if (selected) MaterialTheme.colorScheme.primary else colors.card,
-                ) {
-                    Text(
-                        text = when (filter) {
-                            TaskFilter.ACTIVE -> "Active"
-                            TaskFilter.ALL -> "All"
-                            TaskFilter.ARCHIVED -> "Archived"
-                        },
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (selected) MaterialTheme.colorScheme.onPrimary else colors.muted,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
-                    )
+        PillTabs(
+            options = TaskFilter.entries.toList(),
+            selected = state.filter,
+            label = {
+                when (it) {
+                    TaskFilter.ACTIVE -> "Active"
+                    TaskFilter.ALL -> "All"
+                    TaskFilter.ARCHIVED -> "Archived"
                 }
-            }
-        }
+            },
+            onSelect = onFilterChange,
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
         Spacer(Modifier.height(10.dp))
 
         if (state.tasks.isEmpty() && !state.loading) {
